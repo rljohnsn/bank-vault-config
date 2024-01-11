@@ -1,0 +1,111 @@
+# Test values with following command
+# helm template vault-operator-config --namespace=vault --create-namespace --values values-test.yaml
+vaultOperator:
+  vaults:
+    - name: "vault"
+      size: 3
+      istioEnabled: true
+      vaultEnvsConfig:
+        - name: AWS_REGION
+          value: eu-central-1
+        - name: VAULT_AWSKMS_SEAL_KEY_ID
+          value: CHANGE_ME
+        - name: VAULT_K8S_NAMESPACE
+          value: vault
+      unsealConfig:
+        kubernetes:
+          secretNamespace: vault
+      externalConfig:
+        policies:
+          - name: allow_secrets
+            rules: |
+              path "secret/*" {
+                capabilities = ["create", "read", "update", "delete", "list"]
+              }
+        auth:
+          - type: kubernetes
+            roles:
+              # Allow every pod in the default namespace to use the secret kv store
+              - name: default
+                bound_service_account_names: ["default", "vault"]
+                bound_service_account_namespaces: ["*"]
+                policies: ["allow_secrets"]
+                ttl: 1h
+        secrets:
+          - path: secret
+            type: kv
+            description: General secrets.
+            options:
+              version: 2
+      # Vault Config
+      # Integrated Raft storage with cluster auto discovery/join via K8s
+      # Auto unseal via KMS
+      # TLS enabled
+      config:
+        ui: true
+        log_level: "info"
+        log_requests_level: "off"
+        log_format: json 
+        log_file: /vault/logs/
+        log_rotate_bytes: 100000000
+        log_rotate_max_files: 9
+        disable_mlock: true 
+        introspection_endpoint: true
+        # Low lease ttls are crucial to preventing
+        # rampant storage consumption
+        default_lease_ttl: "1h" 
+        max_lease_ttl: "1h" 
+        listener:
+          tcp:
+            # tls_disable: 1
+            tls_cert_file: /vault/tls/server.crt
+            tls_key_file: /vault/tls/server.key
+            tls_disable_client_certs: true
+            address: "[::]:8200"
+            cluster_address: "[::]:8201"
+            telemetry:
+              unauthenticated_metrics_access: "true"
+        cluster_addr: "https://${.Env.POD_NAME}:8201"
+        api_addr: "https://${.Env.POD_NAME}:8200"
+        telemetry:
+          prometheus_retention_time: "30s"
+          disable_hostname: true
+        seal:
+          awskms: {}
+        #  region     = set with $AWS_REGION
+        #  kms_key_id = set with $VAULT_AWSKMS_SEAL_KEY_ID
+        storage: 
+          raft: 
+            path: "/vault/raft"
+            retry_join:
+              auto_join: provider=k8s label_selector="app.kubernetes.io/instance=vault" namespace=${.Env.POD_NAMESPACE}
+              auto_join_port: 8200
+              auto_join_scheme: "https"
+        service_registration:
+          kubernetes: {}     
+      volumeMounts:
+        - name: vault-raft
+          mountPath: /vault/raft   
+        - name: vault-logs
+          mountPath: /vault/logs  
+      # Production level storage allocation
+      # Caveat: The operator will not update/expand with larger storage 
+      volumeClaimTemplates:
+        - metadata:
+            name: vault-raft
+          spec:
+            accessModes:
+              - ReadWriteOnce
+            volumeMode: Filesystem
+            resources:
+              requests:
+                storage: 1Ti
+        - metadata:
+            name: vault-logs
+          spec:
+            accessModes:
+              - ReadWriteOnce
+            volumeMode: Filesystem
+            resources:
+              requests:
+                storage: 1.2Gi

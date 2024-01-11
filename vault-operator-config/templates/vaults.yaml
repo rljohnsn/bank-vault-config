@@ -1,0 +1,187 @@
+{{ with $.Values.vaultOperator.defaults }}
+{{ $defaults := . }}
+{{ with $.Values.vaultOperator.vaults }}
+{{ range $v := . }}
+---
+apiVersion: {{ default $defaults.apiVersion .apiVersion | quote }}
+kind: "Vault"
+metadata:
+  name: {{ default "vault" .name }}
+  namespace: {{ default (default $defaults.namespace .namespace) $.Release.Namespace }}
+spec:
+  size: {{ default $defaults.size .size }}
+  image: hashicorp/vault:{{ default $defaults.version .version }}
+  bankVaultsImage: {{ default $defaults.bankVaultsImage .bankVaultsImage }}
+  istioEnabled: {{ default $defaults.istioEnabled .istioEnabled }}
+  serviceAccount: {{ default $defaults.serviceAccount .serviceAccount }}
+  serviceMonitorEnabled: {{ default $defaults.serviceMonitorEnabled .serviceMonitorEnabled }}
+  serviceRegistrationEnabled: {{ default $defaults.serviceRegistrationEnabled .serviceRegistrationEnabled }}
+  serviceType: {{ default $defaults.serviceType .serviceType }}
+  statsdDisabled: {{ default $defaults.statsdDisabled .statsdDisabled}}
+  veleroEnabled: {{ default $defaults.veleroEnabled .veleroEnabled }}
+  {{- with .annotations }}
+  annotations:
+  {{- toYaml . | nindent 4 -}}
+  {{ end }}
+  {{- with .affinity }}
+  affinity:
+  {{- toYaml . | nindent 4 -}}
+  {{ end }}
+  {{- with .caNamespaces }}
+  caNamespaces:
+  {{- toYaml . | nindent 4 -}}
+  {{ end }}
+  {{- with .config }}
+  config:
+  {{- toYaml . | nindent 4 -}}
+  {{ end }}
+  {{- with .credentialsConfig }}
+  credentialsConfig:
+  {{- toYaml . | nindent 4 -}}
+  {{ end }}
+  {{- with .envsConfig }}
+  envsConfig:
+  {{- toYaml . | nindent 4 -}}
+  {{ end }}
+  {{- with .externalConfig }}
+  externalConfig:
+  {{- toYaml . | nindent 4 -}}
+  {{ end }}
+  {{- with .ingress }}
+  ingress:
+  {{- toYaml . | nindent 4 -}}
+  {{ end }}
+  {{- with .nodeSelector }}
+  nodeSelector:
+  {{- toYaml . | nindent 4 -}}
+  {{ end }}
+  {{- with .resources }}
+  resources:
+  {{- toYaml . | nindent 4 -}}
+  {{ end }}
+  {{- with .sidecarEnvsConfig }}
+  sidecarEnvsConfig:
+  {{- toYaml . | nindent 4 -}}
+  {{ end }}
+  {{- with .statsdConfig }}
+  statsdConfig:
+  {{- toYaml . | nindent 4 -}}
+  {{ end }}
+  {{- with .tolerations }}
+  tolerations:
+  {{- toYaml . | nindent 4 -}}
+  {{ end }}
+  {{- with .unsealConfig }}
+  unsealConfig:
+  {{- toYaml . | nindent 4 -}}
+  {{ end }}
+  {{- with .vaultAnnotations }}
+  vaultAnnotations:
+  {{- toYaml . | nindent 4 -}}
+  {{ end }}
+  {{- with .vaultConfigurerAnnotations }}
+  vaultConfigurerAnnotations:
+  {{- toYaml . | nindent 4 -}}
+  {{ end }}
+  {{- with .vaultConfigurerLabels }}
+  vaultConfigurerLabels:
+  {{- toYaml . | nindent 4 -}}
+  {{ end }}
+  {{- with .vaultContainerSpec }}
+  vaultContainerSpec:
+  {{- toYaml . | nindent 4 -}}
+  {{ end }}
+  {{- with .vaultContainers }}
+  vaultContainers:
+  {{- toYaml . | nindent 4 -}}
+  {{ end }}
+  {{- with .vaultInitContainers }}
+  vaultInitContainers:
+  {{- toYaml . | nindent 4 -}}
+  {{ end }}
+  {{- if or (hasKey . "vaultEnvsConfig") (hasKey $defaults "vaultEnvsConfig") }}
+  vaultEnvsConfig:
+  {{- with $defaults.vaultEnvsConfig }}
+  {{- toYaml . | nindent 4 -}}
+  {{ end }}
+  {{- with .vaultEnvsConfig }}
+  {{- toYaml . | nindent 4 -}}
+  {{ end }}
+  {{ end }}
+  {{- with .vaultLabels }}
+  vaultLabels:
+  {{- toYaml . | nindent 4 -}}
+  {{ end }}
+  {{- with .vaultPodSpec }}
+  vaultPodSpec:
+  {{- toYaml . | nindent 4 -}}
+  {{ end }}
+  {{- with .volumeClaimTemplates }}
+  volumeClaimTemplates:
+  {{- toYaml . | nindent 4 -}}
+  {{ end }}
+  {{- with .volumes }}
+  volumes:
+  {{- toYaml . | nindent 4 -}}
+  {{ end }}
+  {{- with .volumeMounts }}
+  volumeMounts:
+  {{- toYaml . | nindent 4 -}}
+  {{ end }}
+
+---
+kind: ServiceAccount
+apiVersion: v1
+metadata:
+  name: {{ default "vault" .name }}-sa
+  namespace: {{ default (default $defaults.namespace .namespace) $.Release.Namespace }}
+
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ default "vault" .name }}-role
+  namespace: {{ default (default $defaults.namespace .namespace) $.Release.Namespace }}
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["*"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "update", "patch"]
+
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ default "vault" .name }}-rb
+  namespace: {{ default (default $defaults.namespace .namespace) $.Release.Namespace }}
+roleRef:
+  kind: Role
+  name: {{ default "vault" .name }}-role
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+  - kind: ServiceAccount
+    name: {{ default "vault" .name }}-sa
+    namespace: {{ default (default $defaults.namespace .namespace) $.Release.Namespace }}
+
+---
+# This binding allows the deployed Vault instance to authenticate clients
+# through Kubernetes ServiceAccounts (if configured so).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ default "vault" .name }}-auth-delegator-crb
+  namespace: {{ default (default $defaults.namespace .namespace) $.Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:auth-delegator
+subjects:
+  - kind: ServiceAccount
+    name: {{ default "vault" .name }}-sa
+    namespace: {{ default (default $defaults.namespace .namespace) $.Release.Namespace }}
+
+{{ end }}
+{{ end }}
+{{ end }}

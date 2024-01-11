@@ -1,0 +1,66 @@
+vaultOperator:
+  defaults:
+    apiVersion: "vault.banzaicloud.com/v1alpha1"
+    bankVaultsImage: ghcr.io/bank-vaults/bank-vaults:latest
+# Explicitly set namespace
+# or let it pick it up from helm install
+#    namespace: "vault"
+    size: 1
+    version: "1.15.4"
+    istioEnabled: false
+    serviceAccount: "vault-sa"
+    serviceMonitorEnabled: false
+    serviceRegistrationEnabled: false
+    serviceType: ClusterIP
+    statsdDisabled: true
+    veleroEnabled: false
+    vaultEnvsConfig:
+      - name: POD_NAMESPACE
+        valueFrom:
+          fieldRef:
+            fieldPath: metadata.namespace
+  vaults: []
+#   - name: "vault01"
+#     size: 3
+#     version: "1.15.4"
+#     namespace: altvault
+#     caNamespaces:
+#       - "*"
+#     
+#     vaultEnvsConfig:
+#       - name: VAULT_LOG
+#         value: info
+#
+#     credentialsConfig:
+#       env: env
+#       path: path
+#       secretName: secretname
+#
+#      unsealConfig:
+#        kubernetes:
+#          secretNamespace: vault
+#
+#     config:
+#       ui: true
+#
+#     externalConfig:
+#       policies:
+#         - name: allow_secrets
+#           rules: path "secret/*" {
+#               capabilities = ["create", "read", "update", "delete", "list"]
+#             }
+#       auth:
+#         - type: kubernetes
+#           roles:
+#             # Allow every pod in the default namespace to use the secret kv store
+#             - name: default
+#               bound_service_account_names: ["default", "vault-secrets-webhook"]
+#               bound_service_account_namespaces: ["default", "vswh"]
+#               policies: ["allow_secrets", "allow_pki"]
+#               ttl: 1h
+#
+#    - name: "vault02"
+#      version: "1.14.1"
+#      config:
+#        blah: blah
+

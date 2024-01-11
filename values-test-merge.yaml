@@ -1,0 +1,14 @@
+# Test values with following command
+# helm template vault-operator-config --namespace=vault --create-namespace --values values-test-ssl.yaml --values values-test-merge.yaml
+vaultOperator:
+  defaults:
+    vaultEnvsConfig:
+      - name: AWS_REGION
+        value: eu-central-1
+      - name: VAULT_AWSKMS_SEAL_KEY_ID
+        value: CHANGE_ME
+      - name: POD_NAMESPACE
+        valueFrom:
+          fieldRef:
+            fieldPath: metadata.namespace
+
