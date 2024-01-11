@@ -36,9 +36,9 @@ vaultOperator:
 #       path: path
 #       secretName: secretname
 #
-#      unsealConfig:
-#        kubernetes:
-#          secretNamespace: vault
+#     unsealConfig:
+#       kubernetes:
+#         secretNamespace: vault
 #
 #     config:
 #       ui: true
