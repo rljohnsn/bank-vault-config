@@ -1,0 +1,48 @@
+# Test values with following command
+# helm template vault-operator-config --namespace=vault --create-namespace --values values-test-ssl.yaml --values values-test-istio.yaml --values values-test-merge.yaml
+vaultOperator:
+  networks:
+    # prerequisite: Istio Service Mesh install with public and private gateways
+    # Istio Virtual Services
+    vservice:
+    - name: vault-public
+      # namespace: <set explicitly here>, falls back to defaults then .Release.Namespace
+      labels:
+        foo: bar
+      annotations:
+        bar: foo
+      spec:
+        gateways:
+          - istio-system/istio-public-gateway 
+        hosts: 
+          - host-public.fqdn 
+        http: 
+          - match: 
+              - url: 
+                  prefix: /
+            route: 
+              - destination: 
+                  host: vault 
+                  port:
+                    number: 8200
+    - name: vault-internal
+      labels:
+        foo: bar
+      annotations:
+        bar: foo
+      spec:
+        gateways:
+          - istio-system/istio-internal-gateway 
+        hosts: 
+          - host-internal.fqdn 
+        http: 
+          - match: 
+              - url: 
+                  prefix: /
+            route: 
+              - destination: 
+                  host: vault 
+                  port:
+                    number: 8200
+
+

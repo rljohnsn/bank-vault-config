@@ -10,8 +10,6 @@ vaultOperator:
           value: eu-central-1
         - name: VAULT_AWSKMS_SEAL_KEY_ID
           value: CHANGE_ME
-        - name: VAULT_K8S_NAMESPACE
-          value: vault
       unsealConfig:
         kubernetes:
           secretNamespace: vault

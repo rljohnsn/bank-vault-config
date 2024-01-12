@@ -5,12 +5,34 @@ vaultOperator:
     - name: "vault"
       size: 3
       istioEnabled: true
-      vaultEnvsConfig:
-        - name: VAULT_K8S_NAMESPACE
-          value: vault
       unsealConfig:
         kubernetes:
           secretNamespace: vault
+# Bank Vault Operator Ingress config
+# Caveat: operator will create one and only one Ingress obj
+# Use vaultOperator.networks instead
+# See values-test-ingress.yaml
+#      ingress:
+#        annotations:
+#          external-dns.alpha.kubernetes.io/target: "nginx-ingress-public.fqdn"
+#          external-dns.alpha.kubernetes.io/ingress-hostname-source: defined-hosts-only
+#          nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+#          nginx.ingress.kubernetes.io/ssl-passthrough: 'true'
+#        spec:
+#          ingressClassName: "nginx-public"
+#          tls:
+#            - secretName: "fqdn-tls"
+#          rules: 
+#            - host: vault-pub.fqdn 
+#              http:
+#                paths: 
+#                  - path: / 
+#                    pathType: ImplementationSpecific 
+#                    backend: 
+#                      service: 
+#                        name: vault 
+#                        port: 
+#                          number: 8200      
       externalConfig:
         policies:
           - name: allow_secrets

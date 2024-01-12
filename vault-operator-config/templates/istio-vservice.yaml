@@ -1,0 +1,26 @@
+{{- with $.Values.vaultOperator.defaults }}
+{{- $defaults := . }}
+{{- with $.Values.vaultOperator.networks }}
+{{- range $vservice := .vservice -}}
+---
+apiVersion: {{ default "networking.istio.io/v1alpha3" $vservice.apiVersion}}
+kind: VirtualService
+metadata:
+  name: {{ $vservice.name }}-vs
+  namespace: {{ default (default (default $.Release.Namespace $defaults.namespace) .namespace ) .namespace }}
+  {{- with .labels }}
+  labels:
+  {{- toYaml . | nindent 4 -}}
+  {{ end }}
+  {{- with .annotations }}
+  annotations:
+  {{- toYaml . | nindent 4 -}}
+  {{ end }}
+spec:
+{{- with .spec }}
+{{- toYaml . | nindent 2 }}
+{{ end }}
+
+{{ end }}
+{{ end }}
+{{ end }}

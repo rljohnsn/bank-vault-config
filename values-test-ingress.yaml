@@ -1,0 +1,52 @@
+# Test values with following command
+# helm template vault-operator-config --namespace=vault --create-namespace --values values-test-ssl.yaml --values values-test-ingress.yaml --values values-test-merge.yaml
+vaultOperator:
+  networks:
+    ingress:
+      - name: vault-public
+        # namespace: <set explicitly here>, falls back to defaults then .Release.Namespace
+        annotations:
+          external-dns.alpha.kubernetes.io/ingress-hostname-source: defined-hosts-only
+          external-dns.alpha.kubernetes.io/target: nginx-ingress-public.fqdn
+          nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+          nginx.ingress.kubernetes.io/ssl-passthrough: 'true'
+        spec:
+          # prerequisite: Nginx Ingress controller configured for public access
+          ingressClassName: nginx-public 
+          tls: 
+            - secretName: fqdn-tls
+          rules: 
+            - host: vault-pub.fqdn 
+              http:
+                paths: 
+                  - path: / 
+                    pathType: ImplementationSpecific 
+                    backend: 
+                      service: 
+                        name: vault 
+                        port: 
+                          number: 8200
+      - name: vault-internal
+        # namespace: <set explicitly here>, falls back to defaults then .Release.Namespace
+        annotations:
+          external-dns.alpha.kubernetes.io/ingress-hostname-source: defined-hosts-only
+          external-dns.alpha.kubernetes.io/target: nginx-ingress-internal.fqdn
+          nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+          nginx.ingress.kubernetes.io/ssl-passthrough: 'true'
+        spec:
+          # prerequisite: Nginx Ingress controller configured for internal access
+          ingressClassName: nginx-internal 
+          tls: 
+            - secretName: fqdn-tls
+          rules: 
+            - host: vault-int.fqdn 
+              http:
+                paths: 
+                  - path: / 
+                    pathType: ImplementationSpecific 
+                    backend: 
+                      service: 
+                        name: vault 
+                        port: 
+                          number: 8200
+

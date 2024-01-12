@@ -1,13 +1,13 @@
-{{ with $.Values.vaultOperator.defaults }}
-{{ $defaults := . }}
-{{ with $.Values.vaultOperator.vaults }}
-{{ range $v := . }}
+{{- with $.Values.vaultOperator.defaults }}
+{{- $defaults := . }}
+{{- with $.Values.vaultOperator.vaults }}
+{{- range $v := . -}}
 ---
 apiVersion: {{ default $defaults.apiVersion .apiVersion | quote }}
 kind: "Vault"
 metadata:
   name: {{ default "vault" .name }}
-  namespace: {{ default (default $defaults.namespace .namespace) $.Release.Namespace }}
+  namespace: {{ default (default (default $.Release.Namespace $defaults.namespace) $v.namespace ) .namespace }}
 spec:
   size: {{ default $defaults.size .size }}
   image: hashicorp/vault:{{ default $defaults.version .version }}
@@ -47,9 +47,16 @@ spec:
   externalConfig:
   {{- toYaml . | nindent 4 -}}
   {{ end }}
+  {{- if (hasKey . "ingress") }}
   {{- with .ingress }}
   ingress:
   {{- toYaml . | nindent 4 -}}
+  {{ end }}
+  {{- else }}
+  {{- with $defaults.ingress }}
+  ingress:
+  {{- toYaml . | nindent 4 -}}
+  {{ end }}
   {{ end }}
   {{- with .nodeSelector }}
   nodeSelector:
