@@ -65,3 +65,30 @@ vaultOperator:
 
 ```
 
+## Networking
+
+The [Bank Vaults](https://bank-vaults.dev/docs/) operator supports creating a [single ingress](/values-test-ssl.yaml#L11-L35). This chart supports that config in addtion there is the ability to create any number of native K8s [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) objects and or [Istio Virtual Services](https://istio.io/latest/docs/reference/config/networking/virtual-service/) objects.
+
+See [ingress](/values-test-ingress.yaml) and [istio](values-test-istio.yaml) sample files. 
+
+```yaml
+vaultOperator:
+  networks:
+    ingress:
+      - name: vault-public
+        labels: []
+        annotations: []
+        spec: {}
+      - name: vault-internal
+        labels: []
+        annotations: []
+        spec: {}
+    vservice:
+      - name: vault-public
+        labels: []
+        annotations: []
+      - name: vault-internal
+        labels: []
+        annotations: []
+        spec: {}
+```
