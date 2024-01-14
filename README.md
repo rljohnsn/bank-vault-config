@@ -9,7 +9,7 @@ The provided examples demonstrate setting up Vault with the following characteri
 
 * [TLS enabled](/values-test-ssl.yaml#L54-L59) for all traffic
 * [Integrated Storage (raft)](/values-test-ssl.yaml#L73-L79)
-* Raft cluster [auto discover / joining](/values-test-ssl.yaml#L76-L79) using K8s service discovery
+* Raft cluster [auto discover / joining](/values-test-ssl.yaml#L95-L101) using K8s service discovery
 * Vault [Engine](/values-test-ssl.yaml#L30-L35) install
 * Vault [Policy](/values-test-ssl.yaml#L15-L20) install
 * Vault [Auth method](/values-test-ssl.yaml#L21-L29) install
