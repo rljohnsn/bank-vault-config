@@ -66,6 +66,10 @@ spec:
   resources:
   {{- toYaml . | nindent 4 -}}
   {{ end }}
+  {{- with .securityContext }}
+  securityContext:
+  {{- toYaml . | nindent 4 -}}
+  {{ end }}
   {{- with .sidecarEnvsConfig }}
   sidecarEnvsConfig:
   {{- toYaml . | nindent 4 -}}
